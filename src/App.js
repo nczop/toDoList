@@ -3,66 +3,63 @@ import './App.css';
 import Todo from './components/Todo';
 import uuid from 'uuid';
 import AddTodo from './components/AddTodo';
+import axios from 'axios';
 
+const URL = 'https://3fearkr3qd.execute-api.eu-central-1.amazonaws.com/dev/todos';
 class App extends Component {
   state = {
-    todo: [
-      {
-        id: "1",
-        title: 'Take out the trash',
-        completed: false
-      },
-      {
-        id: "2",
-        title: 'Do project',
-        completed: false
-      },
-      {
-        id: "3",
-        title: 'Drink wine',
-        completed: false
-      },
-      {
-        id: "4",
-        title: 'Dinner with fiend',
-        completed: false
-      },
-    ],
+    todo: [],
     newTodoValue: '',
+  }
+
+  componentDidMount() {
+    axios.get(URL)
+      .then(response =>  {
+        console.log(response.data);
+        this.setState({todo: response.data})
+      })      
   }
 
   onAddNewTodoValueChange = (e) => {
     this.setState({ newTodoValue: e.target.value })
   }
-  
+
   delTodo = (id) => {
     const newTodoList = this.state.todo.filter(todo => todo.id !== id)
     this.setState({ todo: newTodoList })
-
+    axios.delete(URL+ '/'+ id)
   }
 
   markComplete = (id) => {
     const newTodoList = this.state.todo.map(todo => {
       if (todo.id === id) {
-        todo.completed = !todo.completed;
+        todo.checked = !todo.checked;
+        axios.put (URL+ '/'+ id, {
+          text: todo.text,
+          checked: todo.checked
+        })
       }
       return todo;
-    })
+    })   
 
     this.setState({ todo: newTodoList })
   }
 
-  onNewTodoAdd = () => {
-    const newTodo = {
-      id: uuid(),
-      title: this.state.newTodoValue,
-      completed: false
+  onNewTodoAdd = () => { 
+    if (this.state.newTodoValue==='') {
+      return false
     }
-    this.setState({ todo: [...this.state.todo, newTodo], newTodoValue: '' })
-  }
-    
-  render() {
-    console.log (this.state)
+    const toNatalkaWysle = {
+      text: this.state.newTodoValue
+    }   
+    axios.post (URL, toNatalkaWysle)
+    .then(dupcia => {
+      this.setState({ todo: [...this.state.todo, dupcia.data], newTodoValue: '' })
+    })    
+  }  
+  
+    render() {
+    console.log(this.state)
     return (
       <div className="App">
         <Todo
